@@ -148,8 +148,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .reset-btn:hover{opacity:1;}
 
 /* ═══ REST TIMER — FIXED ABOVE TAB BAR ═══ */
-.rest-bar{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px) + 10px);left:10px;right:10px;z-index:60;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;transform:translateY(200%);transition:transform .35s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 30px rgba(0,0,0,0.6);}
-.rest-bar.show{transform:translateY(0);}
+.rest-bar{position:fixed;left:10px;right:10px;bottom:72px;z-index:45;background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;display:none;box-shadow:0 -4px 30px rgba(0,0,0,0.6);}
+.rest-bar.show{display:block;}
 .rest-bar.done{border-color:var(--green);}
 .rest-progress{position:absolute;top:0;left:0;bottom:0;background:linear-gradient(90deg,var(--accent-g),rgba(124,108,240,0.06));transition:width .95s linear;z-index:0;}
 .rest-bar.done .rest-progress{background:linear-gradient(90deg,var(--green-g),rgba(0,196,140,0.05));}
@@ -265,7 +265,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .empty p{font-size:14px;font-weight:500;line-height:1.5;}
 
 /* ═══ TOAST & CONFETTI ═══ */
-.toast{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom,0px) + 10px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#000;font-weight:700;font-size:14px;padding:12px 24px;border-radius:30px;opacity:0;pointer-events:none;transition:all .35s;z-index:999;box-shadow:0 4px 20px var(--green-g);white-space:nowrap;max-width:90vw;text-align:center;}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:var(--green);color:#000;font-weight:700;font-size:14px;padding:12px 24px;border-radius:30px;opacity:0;pointer-events:none;transition:all .35s;z-index:999;box-shadow:0 4px 20px var(--green-g);white-space:nowrap;max-width:90vw;text-align:center;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 #confettiCanvas{position:fixed;inset:0;z-index:9999;pointer-events:none;display:none;}
 
@@ -730,7 +730,9 @@ function startRest(){
   const s=getS();restTotal=s.restDuration;restRemain=restTotal;
   clearInterval(restInt);
   const bar=document.getElementById('restBar');
-  bar.classList.add('show');bar.classList.remove('done');
+  bar.classList.remove('done');
+  bar.classList.add('show');
+  positionRestBar();
   updRestDisplay();
   restInt=setInterval(()=>{restRemain--;updRestDisplay();if(restRemain<=0){clearInterval(restInt);restDone();}},1000);
 }
@@ -749,10 +751,18 @@ function restDone(){
   const s=getS();
   if(s.vibrate&&navigator.vibrate)navigator.vibrate([200,100,200]);
   if(s.sound)playBeep();
-  setTimeout(()=>{bar.classList.remove('show','done');},4000);
+  setTimeout(()=>{bar.classList.remove('show');bar.classList.remove('done');},4000);
 }
 
 function skipRest(){clearInterval(restInt);document.getElementById('restBar').classList.remove('show','done');}
+function positionRestBar(){
+  const tabs=document.querySelector('.tabs');
+  const bar=document.getElementById('restBar');
+  if(!tabs||!bar)return;
+  const tabH=tabs.getBoundingClientRect().height;
+  bar.style.bottom=Math.round(tabH+10)+'px';
+}
+window.addEventListener('resize',positionRestBar);
 function addRest(sec){restRemain=Math.max(0,restRemain+sec);if(sec>0)restTotal+=sec;updRestDisplay();}
 
 function playBeep(){
@@ -1260,12 +1270,14 @@ function switchTab(id,btn){
 function showToast(msg,warn){
   const t=document.getElementById('toast');t.textContent=msg;
   t.style.background=warn?'var(--orange)':'var(--green)';t.style.color='#000';
+  const tabs=document.querySelector('.tabs');
+  t.style.bottom=(tabs?tabs.offsetHeight+12:80)+'px';
   t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
 }
 
 /* ═══ START ═══ */
 init();
+requestAnimationFrame(()=>positionRestBar());
 </script>
 </body>
 </html>
- 
